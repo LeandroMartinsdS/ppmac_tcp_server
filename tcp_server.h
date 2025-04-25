@@ -9,8 +9,7 @@
 
 // Socket settings
 #define MAXPENDING 5
-#define VAR_NUM     7
-#define BUFFSIZE VAR_NUM*sizeof(double)
+#define BUFFSIZE 1024 //7*sizeof(double)
 #define SHUTDOWN_CMD "SHUTDOWN"
 
 // Constants
@@ -19,8 +18,8 @@
     struct SHM {
         double P[MAX_P];            // Global P variable Array
     };
-    struct SHM  *pshm;              // Pointer to shared memory
-    void        *pushm;             // Pointer to user shared memory
+    extern struct SHM  *pshm;              // Pointer to shared memory
+    extern void        *pushm;             // Pointer to user shared memory
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -48,7 +47,7 @@
     #define MASTER_ECT_BASE 19
 #endif // SIMULATION_MODE
 
-int serverSock;
+extern int serverSock;
 
 void InitSocket(char *host, int port);
 int AcceptClient(void);
