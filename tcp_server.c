@@ -1,4 +1,26 @@
-#include "ppmac_tcp.h"
+/*
+ * =============================================================================
+ * File        : tcp_server.c
+ * Author      : Leandro Martins dos Santos
+ * Created on  : 2025-02-27
+ * Last Update : 2025-11-04
+ * Version     : 1.0
+ * Description : TCP server implementation for Power PMAC communication.
+ *               Receives messages from a TCP client and writes values to Power PMAC shared memory.
+ *
+ * Dependencies:
+ *   - gplib.h (Delta Tau Power PMAC library)
+ *   - stdlib.h, errno.h, signal.h, string.h, netinet/in.h, sys/socket.h
+ *
+ * Compiler    : Power PMAC IDE (Visual Studio-based) or GCC (Linux)
+ * Target      : Power PMAC CPU (Linux/Xenomai RT kernel)
+ *
+ * License     : Apache-2.0
+ *
+ * =============================================================================
+ */
+
+#include "tcp_server.h"
 
 void InitSocket(char *host, int port) {
     struct sockaddr_in serverAddr;
@@ -64,12 +86,12 @@ int AcceptClient() {
 int HandleClient(int clientSock, char * buffer, size_t data_size) {
     static size_t bytes_received;
 
-    #ifndef LOCAL_HOST
+    #ifndef SIMULATION_MODE
     InitLibrary();  // Required for accessing Power PMAC library
     #ifdef DEBUG
     double exec_time = GetCPUClock();
     #endif  // DEBUG
-    #endif  // LOCAL_HOST
+    #endif  // SIMULATION_MODE
 
     // Receive message from client
     bytes_received = recv(clientSock, buffer, data_size*sizeof(double), 0);
@@ -85,7 +107,7 @@ int HandleClient(int clientSock, char * buffer, size_t data_size) {
         printf("Shutdown command received\n");
         close(clientSock);
         close(serverSock);
-        #ifndef LOCAL_HOST
+        #ifndef SIMULATION_MODE
         CloseLibrary();
         #endif
         exit(EXIT_SUCCESS);
@@ -119,7 +141,7 @@ void Die(char *message) {
 void kill_handler(int sig) {
   close(serverSock);
 
-  #ifndef LOCAL_HOST
+  #ifndef SIMULATION_MODE
   CloseLibrary();
   #endif
 
@@ -136,7 +158,7 @@ void test_print_data(double *dest, size_t data_count) {
 }
 
 int main() {
-    #ifdef LOCAL_HOST
+    #ifdef SIMULATION_MODE
     pushm = (void *)malloc(sizeof(pushm));  // HACK
     pshm = (void *)malloc(sizeof(pshm));    // HACK
 
@@ -164,7 +186,7 @@ int main() {
     #endif // RUN_AS_RT_APP
 
     InitLibrary();  // Required for accessing Power PMAC library
-    #endif // LOCAL_HOST
+    #endif // SIMULATION_MODE
 
     // global int serverSock due to kill_handler
     char *host = "127.0.0.1";
@@ -187,11 +209,10 @@ int main() {
         test_print_data(dest, data_count);
     } while (socketStatus == 0);
 
-    printf("Out of while\n");
     CloseSocket(clientSock);
     CloseSocket(serverSock);
 
-    #ifdef LOCAL_HOST
+    #ifdef SIMULATION_MODE
     free(pushm);
     #else
     CloseLibrary();

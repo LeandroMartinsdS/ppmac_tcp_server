@@ -1,16 +1,28 @@
-#define LOCAL_HOST   // Comment out if executing on the Power PMAC
-#ifndef LOCAL_HOST
+/*
+ * =============================================================================
+ * File        : tcp_server.h
+ * Author      : Leandro Martins dos Santos
+ * Description : Functions and constants declarations for TCP server.
+ * =============================================================================
+ */
+
+#ifndef TCP_SERVER_H
+#define TCP_SERVER_H
+
+#define SIMULATION_MODE   // Comment out if executing on the Power PMAC
+#ifndef SIMULATION_MODE
 // #define RUN_AS_RT_APP
 // #define DEBUG
-#endif
+#endif // SIMULATION_MODE
 
 // Socket settings
 #define MAXPENDING 5
-#define BUFFSIZE 1024 //7*sizeof(double)
+#define VAR_NUM     7
+#define BUFFSIZE VAR_NUM*sizeof(double)
 #define SHUTDOWN_CMD "SHUTDOWN"
 
 // Constants
-#ifdef LOCAL_HOST
+#ifdef SIMULATION_MODE
     # define MAX_P 65536
     struct SHM {
         double P[MAX_P];            // Global P variable Array
@@ -42,7 +54,7 @@
     #include "../../Include/pp_proj.h"
 
     #define MASTER_ECT_BASE 19
-#endif // LOCAL_HOST
+#endif // SIMULATION_MODE
 
 int serverSock;
 
@@ -54,3 +66,5 @@ void CloseSocket(int sock);
 void Die(char *message);
 void kill_handler(int sig);
 void test_process_data(double *dest, double *src, size_t data_size);
+
+#endif // TCP_SERVER_H
